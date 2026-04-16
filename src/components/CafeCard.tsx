@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Lamp, Clock, Coffee, Crown } from 'lucide-react';
+import { Lamp, Clock, Coffee, Crown, MapPin } from 'lucide-react';
 import { Cafe } from '@/types/cafe';
 import RatingDots from './RatingDots';
 
@@ -52,6 +52,20 @@ const CafeCard = ({ cafe, onToggleElite }: CafeCardProps) => {
         <div className="absolute bottom-3 left-3 bg-card/80 backdrop-blur-md rounded-full px-3 py-1 text-sm font-heading font-semibold text-foreground">
           {avgRating}
         </div>
+
+        {/* Map view button */}
+        <a
+          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+            `${cafe.name} ${cafe.location}`
+          )}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          aria-label={`Open ${cafe.name} on Google Maps`}
+          className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-card/80 backdrop-blur-md text-foreground flex items-center justify-center transition-all duration-300 hover:bg-wood hover:text-primary-foreground shadow-md"
+        >
+          <MapPin size={16} />
+        </a>
       </div>
 
       {/* Content */}
