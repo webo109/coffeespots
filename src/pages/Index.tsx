@@ -6,11 +6,15 @@ import { initialCafes } from '@/data/cafes';
 import CafeCard from '@/components/CafeCard';
 import FilterBar from '@/components/FilterBar';
 import AddCafePanel from '@/components/AddCafePanel';
+import CafeDetailModal from '@/components/CafeDetailModal';
 
 const Index = () => {
   const [cafes, setCafes] = useState<Cafe[]>(initialCafes);
   const [activeSort, setActiveSort] = useState<SortOption>('highest');
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [selectedCafeId, setSelectedCafeId] = useState<string | null>(null);
+
+  const selectedCafe = cafes.find((c) => c.id === selectedCafeId) ?? null;
 
   const sortedCafes = useMemo(() => {
     const sorted = [...cafes];
@@ -90,6 +94,7 @@ const Index = () => {
                   key={cafe.id}
                   cafe={cafe}
                   onToggleElite={toggleElite}
+                  onOpen={(c) => setSelectedCafeId(c.id)}
                 />
               ))}
             </AnimatePresence>
@@ -110,6 +115,13 @@ const Index = () => {
         isOpen={isPanelOpen}
         onClose={() => setIsPanelOpen(false)}
         onAdd={addCafe}
+      />
+
+      {/* Detail Modal */}
+      <CafeDetailModal
+        cafe={selectedCafe}
+        onClose={() => setSelectedCafeId(null)}
+        onToggleElite={toggleElite}
       />
     </div>
   );
