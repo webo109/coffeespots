@@ -6,9 +6,10 @@ import RatingDots from './RatingDots';
 interface CafeCardProps {
   cafe: Cafe;
   onToggleElite: (id: string) => void;
+  onOpen?: (cafe: Cafe) => void;
 }
 
-const CafeCard = ({ cafe, onToggleElite }: CafeCardProps) => {
+const CafeCard = ({ cafe, onToggleElite, onOpen }: CafeCardProps) => {
   const avgRating = ((cafe.vibe + cafe.productivity + cafe.brew) / 3).toFixed(1);
 
   return (
@@ -18,6 +19,7 @@ const CafeCard = ({ cafe, onToggleElite }: CafeCardProps) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+      onClick={() => onOpen?.(cafe)}
       className="glass-card rounded-2xl overflow-hidden group cursor-pointer"
     >
       {/* Image Header */}

@@ -1,3 +1,8 @@
+export interface VisitEntry {
+  date: string;
+  note?: string;
+}
+
 export interface Cafe {
   id: string;
   name: string;
@@ -9,6 +14,8 @@ export interface Cafe {
   isElite: boolean;
   visitedAt: string;
   distance?: number;
+  notes?: string;
+  visitHistory?: VisitEntry[];
 }
 
 export type SortOption = 'highest' | 'work' | 'nearest' | 'recent';
