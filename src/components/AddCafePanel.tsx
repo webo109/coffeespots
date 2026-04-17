@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, ImagePlus, Lamp, Clock, Coffee, Trash2 } from 'lucide-react';
+import { X, MapPin, ImagePlus, Lamp, Clock, Coffee, Trash2, Loader2 } from 'lucide-react';
 import { Cafe } from '@/types/cafe';
 
 interface AddCafePanelProps {
