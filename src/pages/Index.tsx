@@ -140,6 +140,8 @@ const Index = () => {
         cafe={selectedCafe}
         onClose={() => setSelectedCafeId(null)}
         onToggleElite={toggleElite}
+        onUpdateNotes={updateNotes}
+        onAddVisit={addVisit}
       />
     </div>
   );
