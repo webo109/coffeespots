@@ -25,6 +25,12 @@ interface CafeDetailModalProps {
   onToggleElite: (id: string) => void;
   onUpdateNotes: (id: string, notes: string) => void;
   onAddVisit: (id: string, entry: { date: string; note?: string }) => void;
+  onUpdateVisit: (
+    id: string,
+    index: number,
+    entry: { date: string; note?: string }
+  ) => void;
+  onDeleteVisit: (id: string, index: number) => void;
 }
 
 const formatDate = (iso: string) =>
