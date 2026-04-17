@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, ImagePlus, Lamp, Clock, Coffee, Trash2 } from 'lucide-react';
+import { X, MapPin, ImagePlus, Lamp, Clock, Coffee, Trash2, Loader2 } from 'lucide-react';
 import { Cafe } from '@/types/cafe';
 
 interface AddCafePanelProps {
@@ -53,7 +53,52 @@ const AddCafePanel = ({ isOpen, onClose, onAdd }: AddCafePanelProps) => {
   const [productivity, setProductivity] = useState(3);
   const [brew, setBrew] = useState(3);
   const [image, setImage] = useState<string>('');
+  const [isLocating, setIsLocating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUseCurrentLocation = () => {
+    if (!('geolocation' in navigator)) {
+      alert('Geolocation is not supported by your browser.');
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=16&addressdetails=1`,
+            { headers: { Accept: 'application/json' } }
+          );
+          const data = await res.json();
+          const a = data.address ?? {};
+          const parts = [
+            a.road,
+            a.neighbourhood || a.suburb,
+            a.city || a.town || a.village,
+          ].filter(Boolean);
+          const label =
+            parts.join(', ') ||
+            data.display_name ||
+            `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+          setLocation(label);
+        } catch {
+          setLocation(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (err) => {
+        setIsLocating(false);
+        alert(
+          err.code === err.PERMISSION_DENIED
+            ? 'Location permission denied. Enable it in your browser settings to use this feature.'
+            : 'Could not retrieve your location. Please try again.'
+        );
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -190,13 +235,26 @@ const AddCafePanel = ({ isOpen, onClose, onAdd }: AddCafePanelProps) => {
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-foreground">Location</label>
                 <div className="relative">
-                  <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <button
+                    type="button"
+                    onClick={handleUseCurrentLocation}
+                    disabled={isLocating}
+                    title="Use my current location"
+                    aria-label="Use my current location"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center text-gold hover:bg-gold/10 ring-1 ring-gold/40 hover:ring-gold/70 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {isLocating ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <MapPin size={14} />
+                    )}
+                  </button>
                   <input
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Search for a location..."
-                    className="w-full pl-10 pr-4 py-3 bg-secondary/60 border border-border/40 rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                    placeholder={isLocating ? 'Locating you…' : 'Search or tap pin for current location'}
+                    className="w-full pl-12 pr-4 py-3 bg-secondary/60 border border-border/40 rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                   />
                 </div>
               </div>
