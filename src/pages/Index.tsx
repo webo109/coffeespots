@@ -48,15 +48,51 @@ const Index = () => {
 
   const addVisit = (id: string, entry: { date: string; note?: string }) => {
     setCafes((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? {
-              ...c,
-              visitedAt: entry.date,
-              visitHistory: [entry, ...(c.visitHistory ?? [])],
-            }
-          : c
-      )
+      prev.map((c) => {
+        if (c.id !== id) return c;
+        const history = [entry, ...(c.visitHistory ?? [])].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+        return {
+          ...c,
+          visitedAt: history[0]?.date ?? c.visitedAt,
+          visitHistory: history,
+        };
+      })
+    );
+  };
+
+  const updateVisit = (
+    id: string,
+    index: number,
+    entry: { date: string; note?: string }
+  ) => {
+    setCafes((prev) =>
+      prev.map((c) => {
+        if (c.id !== id) return c;
+        const current = c.visitHistory ?? [];
+        const next = current.map((v, i) => (i === index ? entry : v));
+        next.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        return {
+          ...c,
+          visitedAt: next[0]?.date ?? c.visitedAt,
+          visitHistory: next,
+        };
+      })
+    );
+  };
+
+  const deleteVisit = (id: string, index: number) => {
+    setCafes((prev) =>
+      prev.map((c) => {
+        if (c.id !== id) return c;
+        const next = (c.visitHistory ?? []).filter((_, i) => i !== index);
+        return {
+          ...c,
+          visitedAt: next[0]?.date ?? c.visitedAt,
+          visitHistory: next,
+        };
+      })
     );
   };
 
