@@ -325,22 +325,91 @@ const CafeDetailModal = ({
                   </div>
                 )}
 
-                <ol className="relative border-l border-border/60 ml-1.5 space-y-3">
-                  {(cafe.visitHistory && cafe.visitHistory.length > 0
-                    ? cafe.visitHistory
-                    : [{ date: cafe.visitedAt, note: 'Last visit' }]
-                  ).map((entry, i) => (
-                    <li key={i} className="pl-4 relative">
-                      <span className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-wood" />
-                      <p className="text-sm font-medium text-foreground">
-                        {formatDate(entry.date)}
-                      </p>
-                      {entry.note && (
-                        <p className="text-xs text-muted-foreground mt-0.5">{entry.note}</p>
-                      )}
-                    </li>
-                  ))}
-                </ol>
+                {(() => {
+                  const hasHistory =
+                    !!cafe.visitHistory && cafe.visitHistory.length > 0;
+                  const entries = hasHistory
+                    ? cafe.visitHistory!
+                    : [{ date: cafe.visitedAt, note: 'Last visit' }];
+                  return (
+                    <ol className="relative border-l border-border/60 ml-1.5 space-y-3">
+                      {entries.map((entry, i) => {
+                        const isEditing = hasHistory && editingVisitIndex === i;
+                        return (
+                          <li key={i} className="pl-4 relative">
+                            <span className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-wood" />
+                            {isEditing ? (
+                              <div className="space-y-2 p-3 rounded-xl bg-muted/40">
+                                <Input
+                                  type="date"
+                                  value={editVisitDate}
+                                  onChange={(e) => setEditVisitDate(e.target.value)}
+                                  className="rounded-lg"
+                                />
+                                <Input
+                                  type="text"
+                                  value={editVisitNote}
+                                  onChange={(e) => setEditVisitNote(e.target.value)}
+                                  placeholder="Optional note…"
+                                  className="rounded-lg"
+                                />
+                                <div className="flex items-center justify-end gap-2 pt-1">
+                                  <button
+                                    onClick={() => setEditingVisitIndex(null)}
+                                    className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 h-8"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={handleSaveEditVisit}
+                                    disabled={!editVisitDate}
+                                    className="inline-flex items-center gap-1 text-xs font-medium text-primary-foreground bg-wood rounded-full px-3 h-8 hover:opacity-90 disabled:opacity-50 transition-opacity"
+                                  >
+                                    <Check size={12} />
+                                    Save
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="group flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium text-foreground">
+                                    {formatDate(entry.date)}
+                                  </p>
+                                  {entry.note && (
+                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                      {entry.note}
+                                    </p>
+                                  )}
+                                </div>
+                                {hasHistory && (
+                                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                                    <button
+                                      onClick={() =>
+                                        startEditVisit(i, entry.date, entry.note)
+                                      }
+                                      aria-label="Edit visit"
+                                      className="w-7 h-7 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 flex items-center justify-center transition-colors"
+                                    >
+                                      <Pencil size={12} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteVisit(i)}
+                                      aria-label="Delete visit"
+                                      className="w-7 h-7 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex items-center justify-center transition-colors"
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ol>
+                  );
+                })()}
               </section>
 
               {/* Actions */}
