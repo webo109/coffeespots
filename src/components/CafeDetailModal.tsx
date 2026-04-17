@@ -48,12 +48,17 @@ const CafeDetailModal = ({
   onToggleElite,
   onUpdateNotes,
   onAddVisit,
+  onUpdateVisit,
+  onDeleteVisit,
 }: CafeDetailModalProps) => {
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [notesDraft, setNotesDraft] = useState('');
   const [isAddingVisit, setIsAddingVisit] = useState(false);
   const [visitDate, setVisitDate] = useState(todayISO());
   const [visitNote, setVisitNote] = useState('');
+  const [editingVisitIndex, setEditingVisitIndex] = useState<number | null>(null);
+  const [editVisitDate, setEditVisitDate] = useState('');
+  const [editVisitNote, setEditVisitNote] = useState('');
 
   // Reset local state when cafe changes / modal closes
   useEffect(() => {
@@ -62,6 +67,7 @@ const CafeDetailModal = ({
     setIsAddingVisit(false);
     setVisitDate(todayISO());
     setVisitNote('');
+    setEditingVisitIndex(null);
   }, [cafe?.id]);
 
   const handleSaveNotes = () => {
@@ -79,6 +85,27 @@ const CafeDetailModal = ({
     setVisitNote('');
     setVisitDate(todayISO());
     setIsAddingVisit(false);
+  };
+
+  const startEditVisit = (index: number, date: string, note?: string) => {
+    setEditingVisitIndex(index);
+    setEditVisitDate(date.slice(0, 10));
+    setEditVisitNote(note ?? '');
+  };
+
+  const handleSaveEditVisit = () => {
+    if (!cafe || editingVisitIndex === null || !editVisitDate) return;
+    onUpdateVisit(cafe.id, editingVisitIndex, {
+      date: new Date(editVisitDate).toISOString(),
+      note: editVisitNote.trim() || undefined,
+    });
+    setEditingVisitIndex(null);
+  };
+
+  const handleDeleteVisit = (index: number) => {
+    if (!cafe) return;
+    onDeleteVisit(cafe.id, index);
+    if (editingVisitIndex === index) setEditingVisitIndex(null);
   };
 
   return (
