@@ -178,6 +178,8 @@ const Index = () => {
         onToggleElite={toggleElite}
         onUpdateNotes={updateNotes}
         onAddVisit={addVisit}
+        onUpdateVisit={updateVisit}
+        onDeleteVisit={deleteVisit}
       />
     </div>
   );
