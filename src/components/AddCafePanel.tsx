@@ -53,7 +53,52 @@ const AddCafePanel = ({ isOpen, onClose, onAdd }: AddCafePanelProps) => {
   const [productivity, setProductivity] = useState(3);
   const [brew, setBrew] = useState(3);
   const [image, setImage] = useState<string>('');
+  const [isLocating, setIsLocating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUseCurrentLocation = () => {
+    if (!('geolocation' in navigator)) {
+      alert('Geolocation is not supported by your browser.');
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=16&addressdetails=1`,
+            { headers: { Accept: 'application/json' } }
+          );
+          const data = await res.json();
+          const a = data.address ?? {};
+          const parts = [
+            a.road,
+            a.neighbourhood || a.suburb,
+            a.city || a.town || a.village,
+          ].filter(Boolean);
+          const label =
+            parts.join(', ') ||
+            data.display_name ||
+            `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+          setLocation(label);
+        } catch {
+          setLocation(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (err) => {
+        setIsLocating(false);
+        alert(
+          err.code === err.PERMISSION_DENIED
+            ? 'Location permission denied. Enable it in your browser settings to use this feature.'
+            : 'Could not retrieve your location. Please try again.'
+        );
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
