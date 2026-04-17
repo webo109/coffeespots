@@ -1,12 +1,29 @@
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Lamp, Clock, Coffee, Crown, MapPin, CalendarDays, StickyNote } from 'lucide-react';
+import {
+  X,
+  Lamp,
+  Clock,
+  Coffee,
+  Crown,
+  MapPin,
+  CalendarDays,
+  StickyNote,
+  Pencil,
+  Check,
+  Plus,
+} from 'lucide-react';
 import { Cafe } from '@/types/cafe';
 import RatingDots from './RatingDots';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 
 interface CafeDetailModalProps {
   cafe: Cafe | null;
   onClose: () => void;
   onToggleElite: (id: string) => void;
+  onUpdateNotes: (id: string, notes: string) => void;
+  onAddVisit: (id: string, entry: { date: string; note?: string }) => void;
 }
 
 const formatDate = (iso: string) =>
@@ -16,7 +33,47 @@ const formatDate = (iso: string) =>
     day: 'numeric',
   });
 
-const CafeDetailModal = ({ cafe, onClose, onToggleElite }: CafeDetailModalProps) => {
+const todayISO = () => new Date().toISOString().slice(0, 10);
+
+const CafeDetailModal = ({
+  cafe,
+  onClose,
+  onToggleElite,
+  onUpdateNotes,
+  onAddVisit,
+}: CafeDetailModalProps) => {
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [notesDraft, setNotesDraft] = useState('');
+  const [isAddingVisit, setIsAddingVisit] = useState(false);
+  const [visitDate, setVisitDate] = useState(todayISO());
+  const [visitNote, setVisitNote] = useState('');
+
+  // Reset local state when cafe changes / modal closes
+  useEffect(() => {
+    setIsEditingNotes(false);
+    setNotesDraft(cafe?.notes ?? '');
+    setIsAddingVisit(false);
+    setVisitDate(todayISO());
+    setVisitNote('');
+  }, [cafe?.id]);
+
+  const handleSaveNotes = () => {
+    if (!cafe) return;
+    onUpdateNotes(cafe.id, notesDraft.trim());
+    setIsEditingNotes(false);
+  };
+
+  const handleAddVisit = () => {
+    if (!cafe || !visitDate) return;
+    onAddVisit(cafe.id, {
+      date: new Date(visitDate).toISOString(),
+      note: visitNote.trim() || undefined,
+    });
+    setVisitNote('');
+    setVisitDate(todayISO());
+    setIsAddingVisit(false);
+  };
+
   return (
     <AnimatePresence>
       {cafe && (
@@ -122,26 +179,118 @@ const CafeDetailModal = ({ cafe, onClose, onToggleElite }: CafeDetailModalProps)
 
               {/* Notes */}
               <section>
-                <div className="flex items-center gap-2 mb-2">
-                  <StickyNote size={14} className="text-muted-foreground" />
-                  <h3 className="font-heading text-xs uppercase tracking-widest text-muted-foreground">
-                    Notes
-                  </h3>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <StickyNote size={14} className="text-muted-foreground" />
+                    <h3 className="font-heading text-xs uppercase tracking-widest text-muted-foreground">
+                      Notes
+                    </h3>
+                  </div>
+                  {!isEditingNotes ? (
+                    <button
+                      onClick={() => {
+                        setNotesDraft(cafe.notes ?? '');
+                        setIsEditingNotes(true);
+                      }}
+                      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <Pencil size={12} />
+                      Edit
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setIsEditingNotes(false)}
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSaveNotes}
+                        className="inline-flex items-center gap-1 text-xs font-medium text-wood hover:opacity-80 transition-opacity"
+                      >
+                        <Check size={12} />
+                        Save
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <p className="text-sm leading-relaxed text-foreground/90">
-                  {cafe.notes ||
-                    'No notes yet. A quiet corner table near the window is usually the best seat in the house.'}
-                </p>
+
+                {isEditingNotes ? (
+                  <Textarea
+                    value={notesDraft}
+                    onChange={(e) => setNotesDraft(e.target.value)}
+                    placeholder="Add your thoughts about this spot…"
+                    rows={4}
+                    className="rounded-xl resize-none"
+                    autoFocus
+                  />
+                ) : (
+                  <p className="text-sm leading-relaxed text-foreground/90">
+                    {cafe.notes ||
+                      'No notes yet. A quiet corner table near the window is usually the best seat in the house.'}
+                  </p>
+                )}
               </section>
 
               {/* Visit history */}
               <section>
-                <div className="flex items-center gap-2 mb-3">
-                  <CalendarDays size={14} className="text-muted-foreground" />
-                  <h3 className="font-heading text-xs uppercase tracking-widest text-muted-foreground">
-                    Visit History
-                  </h3>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <CalendarDays size={14} className="text-muted-foreground" />
+                    <h3 className="font-heading text-xs uppercase tracking-widest text-muted-foreground">
+                      Visit History
+                    </h3>
+                  </div>
+                  {!isAddingVisit && (
+                    <button
+                      onClick={() => setIsAddingVisit(true)}
+                      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <Plus size={12} />
+                      Log visit
+                    </button>
+                  )}
                 </div>
+
+                {isAddingVisit && (
+                  <div className="mb-4 p-3 rounded-xl bg-muted/40 space-y-2">
+                    <Input
+                      type="date"
+                      value={visitDate}
+                      onChange={(e) => setVisitDate(e.target.value)}
+                      className="rounded-lg"
+                    />
+                    <Input
+                      type="text"
+                      value={visitNote}
+                      onChange={(e) => setVisitNote(e.target.value)}
+                      placeholder="Optional note…"
+                      className="rounded-lg"
+                    />
+                    <div className="flex items-center justify-end gap-2 pt-1">
+                      <button
+                        onClick={() => {
+                          setIsAddingVisit(false);
+                          setVisitNote('');
+                          setVisitDate(todayISO());
+                        }}
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 h-8"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleAddVisit}
+                        disabled={!visitDate}
+                        className="inline-flex items-center gap-1 text-xs font-medium text-primary-foreground bg-wood rounded-full px-3 h-8 hover:opacity-90 disabled:opacity-50 transition-opacity"
+                      >
+                        <Check size={12} />
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <ol className="relative border-l border-border/60 ml-1.5 space-y-3">
                   {(cafe.visitHistory && cafe.visitHistory.length > 0
                     ? cafe.visitHistory

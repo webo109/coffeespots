@@ -42,6 +42,24 @@ const Index = () => {
     );
   };
 
+  const updateNotes = (id: string, notes: string) => {
+    setCafes((prev) => prev.map((c) => (c.id === id ? { ...c, notes } : c)));
+  };
+
+  const addVisit = (id: string, entry: { date: string; note?: string }) => {
+    setCafes((prev) =>
+      prev.map((c) =>
+        c.id === id
+          ? {
+              ...c,
+              visitedAt: entry.date,
+              visitHistory: [entry, ...(c.visitHistory ?? [])],
+            }
+          : c
+      )
+    );
+  };
+
   const addCafe = (newCafe: Omit<Cafe, 'id' | 'isElite' | 'distance'>) => {
     setCafes((prev) => [
       {
@@ -122,6 +140,8 @@ const Index = () => {
         cafe={selectedCafe}
         onClose={() => setSelectedCafeId(null)}
         onToggleElite={toggleElite}
+        onUpdateNotes={updateNotes}
+        onAddVisit={addVisit}
       />
     </div>
   );
