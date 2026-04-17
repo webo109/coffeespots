@@ -128,12 +128,50 @@ const AddCafePanel = ({ isOpen, onClose, onAdd }: AddCafePanelProps) => {
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* Image upload placeholder */}
+              {/* Image upload */}
               <div className="polaroid mx-auto w-56">
-                <div className="aspect-[4/3] bg-secondary rounded-sm flex flex-col items-center justify-center gap-2">
-                  <ImagePlus size={28} className="text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Add a photo</span>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="relative w-full aspect-[4/3] bg-secondary rounded-sm flex flex-col items-center justify-center gap-2 overflow-hidden group"
+                >
+                  {image ? (
+                    <>
+                      <img
+                        src={image}
+                        alt="Selected cafe"
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/30 transition-colors flex items-center justify-center">
+                        <span className="text-xs font-medium text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                          Change photo
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <ImagePlus size={28} className="text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">Add a photo</span>
+                    </>
+                  )}
+                </button>
+                {image && (
+                  <button
+                    type="button"
+                    onClick={() => setImage('')}
+                    className="mt-2 mx-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Trash2 size={12} />
+                    Remove
+                  </button>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
               </div>
 
               {/* Name */}
