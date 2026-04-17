@@ -52,23 +52,43 @@ const AddCafePanel = ({ isOpen, onClose, onAdd }: AddCafePanelProps) => {
   const [vibe, setVibe] = useState(3);
   const [productivity, setProductivity] = useState(3);
   const [brew, setBrew] = useState(3);
+  const [image, setImage] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') setImage(reader.result);
+    };
+    reader.readAsDataURL(file);
+    // reset so selecting the same file again still triggers change
+    e.target.value = '';
+  };
+
+  const resetForm = () => {
+    setName('');
+    setLocation('');
+    setVibe(3);
+    setProductivity(3);
+    setBrew(3);
+    setImage('');
+  };
 
   const handleSubmit = () => {
     if (!name || !location) return;
     onAdd({
       name,
       location,
-      image: '',
+      image,
       vibe,
       productivity,
       brew,
       visitedAt: new Date().toISOString().split('T')[0],
     });
-    setName('');
-    setLocation('');
-    setVibe(3);
-    setProductivity(3);
-    setBrew(3);
+    resetForm();
     onClose();
   };
 
