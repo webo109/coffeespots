@@ -235,13 +235,26 @@ const AddCafePanel = ({ isOpen, onClose, onAdd }: AddCafePanelProps) => {
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-foreground">Location</label>
                 <div className="relative">
-                  <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <button
+                    type="button"
+                    onClick={handleUseCurrentLocation}
+                    disabled={isLocating}
+                    title="Use my current location"
+                    aria-label="Use my current location"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center text-gold hover:bg-gold/10 ring-1 ring-gold/40 hover:ring-gold/70 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {isLocating ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <MapPin size={14} />
+                    )}
+                  </button>
                   <input
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Search for a location..."
-                    className="w-full pl-10 pr-4 py-3 bg-secondary/60 border border-border/40 rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                    placeholder={isLocating ? 'Locating you…' : 'Search or tap pin for current location'}
+                    className="w-full pl-12 pr-4 py-3 bg-secondary/60 border border-border/40 rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                   />
                 </div>
               </div>
