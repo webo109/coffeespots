@@ -12,6 +12,7 @@ import {
   Pencil,
   Check,
   Plus,
+  Trash2,
 } from 'lucide-react';
 import { Cafe } from '@/types/cafe';
 import RatingDots from './RatingDots';
