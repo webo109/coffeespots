@@ -14,7 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cafes: {
+        Row: {
+          brew: number
+          created_at: string
+          distance: number | null
+          id: string
+          image: string
+          is_elite: boolean
+          location: string
+          name: string
+          notes: string | null
+          productivity: number
+          updated_at: string
+          vibe: number
+          visit_history: Json
+          visited_at: string
+        }
+        Insert: {
+          brew?: number
+          created_at?: string
+          distance?: number | null
+          id?: string
+          image?: string
+          is_elite?: boolean
+          location: string
+          name: string
+          notes?: string | null
+          productivity?: number
+          updated_at?: string
+          vibe?: number
+          visit_history?: Json
+          visited_at?: string
+        }
+        Update: {
+          brew?: number
+          created_at?: string
+          distance?: number | null
+          id?: string
+          image?: string
+          is_elite?: boolean
+          location?: string
+          name?: string
+          notes?: string | null
+          productivity?: number
+          updated_at?: string
+          vibe?: number
+          visit_history?: Json
+          visited_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
