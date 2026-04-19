@@ -14,6 +14,8 @@ export interface Cafe {
   isElite: boolean;
   visitedAt: string;
   distance?: number;
+  latitude?: number;
+  longitude?: number;
   notes?: string;
   visitHistory?: VisitEntry[];
 }
