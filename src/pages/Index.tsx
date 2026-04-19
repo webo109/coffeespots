@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react';
 import { AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Plus, Coffee, Search, X } from 'lucide-react';
-import { SortOption } from '@/types/cafe';
+import { Cafe, SortOption } from '@/types/cafe';
 import CafeCard from '@/components/CafeCard';
 import FilterBar from '@/components/FilterBar';
 import AddCafePanel from '@/components/AddCafePanel';
 import CafeDetailModal from '@/components/CafeDetailModal';
 import { useCafes } from '@/hooks/useCafes';
+import { useUserLocation } from '@/hooks/useUserLocation';
+import { haversineKm } from '@/lib/geo';
 
 const Index = () => {
   const {
@@ -24,11 +26,28 @@ const Index = () => {
   const [search, setSearch] = useState('');
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [selectedCafeId, setSelectedCafeId] = useState<string | null>(null);
+  const userLocation = useUserLocation();
 
-  const selectedCafe = cafes.find((c) => c.id === selectedCafeId) ?? null;
+  // Augment cafes with computed distance from the user's current position.
+  const cafesWithDistance: Cafe[] = useMemo(() => {
+    if (!userLocation) return cafes;
+    return cafes.map((c) => {
+      if (c.latitude == null || c.longitude == null) return c;
+      const km = haversineKm(
+        userLocation.latitude,
+        userLocation.longitude,
+        c.latitude,
+        c.longitude
+      );
+      return { ...c, distance: Math.round(km * 10) / 10 };
+    });
+  }, [cafes, userLocation]);
+
+  const selectedCafe =
+    cafesWithDistance.find((c) => c.id === selectedCafeId) ?? null;
 
   const visibleCafes = useMemo(() => {
-    let list = [...cafes];
+    let list = [...cafesWithDistance];
 
     if (eliteOnly) list = list.filter((c) => c.isElite);
 
@@ -50,7 +69,7 @@ const Index = () => {
       case 'work':
         return list.sort((a, b) => b.productivity - a.productivity);
       case 'nearest':
-        return list.sort((a, b) => (a.distance ?? 99) - (b.distance ?? 99));
+        return list.sort((a, b) => (a.distance ?? 99999) - (b.distance ?? 99999));
       case 'recent':
         return list.sort(
           (a, b) =>
@@ -59,7 +78,7 @@ const Index = () => {
       default:
         return list;
     }
-  }, [cafes, activeSort, eliteOnly, search]);
+  }, [cafesWithDistance, activeSort, eliteOnly, search]);
 
   return (
     <div className="min-h-screen bg-background">

@@ -49,6 +49,7 @@ const SliderInput = ({
 const AddCafePanel = ({ isOpen, onClose, onAdd }: AddCafePanelProps) => {
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [vibe, setVibe] = useState(3);
   const [productivity, setProductivity] = useState(3);
   const [brew, setBrew] = useState(3);
@@ -65,6 +66,7 @@ const AddCafePanel = ({ isOpen, onClose, onAdd }: AddCafePanelProps) => {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
+        setCoords({ lat: latitude, lng: longitude });
         try {
           const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=16&addressdetails=1`,
@@ -116,6 +118,7 @@ const AddCafePanel = ({ isOpen, onClose, onAdd }: AddCafePanelProps) => {
   const resetForm = () => {
     setName('');
     setLocation('');
+    setCoords(null);
     setVibe(3);
     setProductivity(3);
     setBrew(3);
@@ -132,6 +135,8 @@ const AddCafePanel = ({ isOpen, onClose, onAdd }: AddCafePanelProps) => {
       productivity,
       brew,
       visitedAt: new Date().toISOString().split('T')[0],
+      latitude: coords?.lat,
+      longitude: coords?.lng,
     });
     resetForm();
     onClose();

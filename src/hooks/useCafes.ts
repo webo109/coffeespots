@@ -13,6 +13,8 @@ type DbCafe = {
   is_elite: boolean;
   visited_at: string;
   distance: number | null;
+  latitude: number | null;
+  longitude: number | null;
   notes: string | null;
   visit_history: unknown;
 };
@@ -28,6 +30,8 @@ const fromDb = (row: DbCafe): Cafe => ({
   isElite: row.is_elite,
   visitedAt: row.visited_at,
   distance: row.distance ?? undefined,
+  latitude: row.latitude ?? undefined,
+  longitude: row.longitude ?? undefined,
   notes: row.notes ?? undefined,
   visitHistory: Array.isArray(row.visit_history)
     ? (row.visit_history as VisitEntry[])
@@ -97,7 +101,8 @@ export function useCafes() {
       visited_at: cafe.visitedAt,
       notes: cafe.notes ?? null,
       visit_history: (cafe.visitHistory ?? []) as unknown as never,
-      distance: Math.round(Math.random() * 10 * 10) / 10,
+      latitude: cafe.latitude ?? null,
+      longitude: cafe.longitude ?? null,
     });
     if (error) console.error('addCafe failed', error);
   };

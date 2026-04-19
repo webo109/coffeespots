@@ -76,7 +76,17 @@ const CafeCard = ({ cafe, onToggleElite, onOpen }: CafeCardProps) => {
           <h3 className="font-heading text-lg font-semibold text-foreground leading-tight">
             {cafe.name}
           </h3>
-          <p className="text-sm text-muted-foreground mt-0.5">{cafe.location}</p>
+          <div className="flex items-center justify-between gap-2 mt-0.5">
+            <p className="text-sm text-muted-foreground truncate">{cafe.location}</p>
+            {typeof cafe.distance === 'number' && (
+              <span className="shrink-0 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                <MapPin size={11} />
+                {cafe.distance < 1
+                  ? `${Math.round(cafe.distance * 1000)} m`
+                  : `${cafe.distance.toFixed(1)} km`}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Ratings */}
