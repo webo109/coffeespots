@@ -22,7 +22,9 @@ export type Database = {
           id: string
           image: string
           is_elite: boolean
+          latitude: number | null
           location: string
+          longitude: number | null
           name: string
           notes: string | null
           productivity: number
@@ -38,7 +40,9 @@ export type Database = {
           id?: string
           image?: string
           is_elite?: boolean
+          latitude?: number | null
           location: string
+          longitude?: number | null
           name: string
           notes?: string | null
           productivity?: number
@@ -54,7 +58,9 @@ export type Database = {
           id?: string
           image?: string
           is_elite?: boolean
+          latitude?: number | null
           location?: string
+          longitude?: number | null
           name?: string
           notes?: string | null
           productivity?: number
