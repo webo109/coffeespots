@@ -1,131 +1,109 @@
 import { useState, useMemo } from 'react';
 import { AnimatePresence, LayoutGroup } from 'framer-motion';
-import { Plus, Coffee } from 'lucide-react';
-import { Cafe, SortOption } from '@/types/cafe';
-import { initialCafes } from '@/data/cafes';
+import { Plus, Coffee, Search, X } from 'lucide-react';
+import { SortOption } from '@/types/cafe';
 import CafeCard from '@/components/CafeCard';
 import FilterBar from '@/components/FilterBar';
 import AddCafePanel from '@/components/AddCafePanel';
 import CafeDetailModal from '@/components/CafeDetailModal';
+import { useCafes } from '@/hooks/useCafes';
 
 const Index = () => {
-  const [cafes, setCafes] = useState<Cafe[]>(initialCafes);
+  const {
+    cafes,
+    loading,
+    addCafe,
+    toggleElite,
+    updateNotes,
+    addVisit,
+    updateVisit,
+    deleteVisit,
+  } = useCafes();
   const [activeSort, setActiveSort] = useState<SortOption>('highest');
+  const [eliteOnly, setEliteOnly] = useState(false);
+  const [search, setSearch] = useState('');
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [selectedCafeId, setSelectedCafeId] = useState<string | null>(null);
 
   const selectedCafe = cafes.find((c) => c.id === selectedCafeId) ?? null;
 
-  const sortedCafes = useMemo(() => {
-    const sorted = [...cafes];
+  const visibleCafes = useMemo(() => {
+    let list = [...cafes];
+
+    if (eliteOnly) list = list.filter((c) => c.isElite);
+
+    const q = search.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          c.location.toLowerCase().includes(q)
+      );
+    }
+
     switch (activeSort) {
       case 'highest':
-        return sorted.sort(
-          (a, b) => (b.vibe + b.productivity + b.brew) - (a.vibe + a.productivity + a.brew)
+        return list.sort(
+          (a, b) =>
+            b.vibe + b.productivity + b.brew - (a.vibe + a.productivity + a.brew)
         );
       case 'work':
-        return sorted.sort((a, b) => b.productivity - a.productivity);
+        return list.sort((a, b) => b.productivity - a.productivity);
       case 'nearest':
-        return sorted.sort((a, b) => (a.distance ?? 99) - (b.distance ?? 99));
+        return list.sort((a, b) => (a.distance ?? 99) - (b.distance ?? 99));
       case 'recent':
-        return sorted.sort(
-          (a, b) => new Date(b.visitedAt).getTime() - new Date(a.visitedAt).getTime()
+        return list.sort(
+          (a, b) =>
+            new Date(b.visitedAt).getTime() - new Date(a.visitedAt).getTime()
         );
       default:
-        return sorted;
+        return list;
     }
-  }, [cafes, activeSort]);
-
-  const toggleElite = (id: string) => {
-    setCafes((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, isElite: !c.isElite } : c))
-    );
-  };
-
-  const updateNotes = (id: string, notes: string) => {
-    setCafes((prev) => prev.map((c) => (c.id === id ? { ...c, notes } : c)));
-  };
-
-  const addVisit = (id: string, entry: { date: string; note?: string }) => {
-    setCafes((prev) =>
-      prev.map((c) => {
-        if (c.id !== id) return c;
-        const history = [entry, ...(c.visitHistory ?? [])].sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
-        return {
-          ...c,
-          visitedAt: history[0]?.date ?? c.visitedAt,
-          visitHistory: history,
-        };
-      })
-    );
-  };
-
-  const updateVisit = (
-    id: string,
-    index: number,
-    entry: { date: string; note?: string }
-  ) => {
-    setCafes((prev) =>
-      prev.map((c) => {
-        if (c.id !== id) return c;
-        const current = c.visitHistory ?? [];
-        const next = current.map((v, i) => (i === index ? entry : v));
-        next.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        return {
-          ...c,
-          visitedAt: next[0]?.date ?? c.visitedAt,
-          visitHistory: next,
-        };
-      })
-    );
-  };
-
-  const deleteVisit = (id: string, index: number) => {
-    setCafes((prev) =>
-      prev.map((c) => {
-        if (c.id !== id) return c;
-        const next = (c.visitHistory ?? []).filter((_, i) => i !== index);
-        return {
-          ...c,
-          visitedAt: next[0]?.date ?? c.visitedAt,
-          visitHistory: next,
-        };
-      })
-    );
-  };
-
-  const addCafe = (newCafe: Omit<Cafe, 'id' | 'isElite' | 'distance'>) => {
-    setCafes((prev) => [
-      {
-        ...newCafe,
-        id: Date.now().toString(),
-        isElite: false,
-        distance: Math.round(Math.random() * 10 * 10) / 10,
-        image: newCafe.image || prev[0]?.image || '',
-      },
-      ...prev,
-    ]);
-  };
+  }, [cafes, activeSort, eliteOnly, search]);
 
   return (
     <div className="min-h-screen bg-background">
       {/* Sticky Header */}
       <header className="sticky top-0 z-30 glass-panel border-b border-border/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-between gap-3 h-16">
+            <div className="flex items-center gap-2.5 shrink-0">
               <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Coffee size={18} className="text-primary" />
               </div>
-              <h1 className="font-heading text-lg font-semibold text-foreground tracking-tight">
+              <h1 className="font-heading text-lg font-semibold text-foreground tracking-tight hidden sm:block">
                 Coffee Spots
               </h1>
             </div>
+
+            {/* Search */}
+            <div className="relative flex-1 max-w-md">
+              <Search
+                size={16}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+              />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name or location…"
+                className="w-full pl-9 pr-9 py-2.5 bg-secondary/60 border border-border/40 rounded-full text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  aria-label="Clear search"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 flex items-center justify-center transition-colors"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
             <button
               onClick={() => setIsPanelOpen(true)}
-              className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
+              className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20 hover:opacity-90 transition-all shrink-0"
+              aria-label="Log a new spot"
             >
               <Plus size={20} />
             </button>
@@ -133,7 +111,12 @@ const Index = () => {
 
           {/* Filter pills */}
           <div className="pb-3">
-            <FilterBar activeSort={activeSort} onSortChange={setActiveSort} />
+            <FilterBar
+              activeSort={activeSort}
+              onSortChange={setActiveSort}
+              eliteOnly={eliteOnly}
+              onEliteToggle={setEliteOnly}
+            />
           </div>
         </div>
       </header>
@@ -143,7 +126,7 @@ const Index = () => {
         <LayoutGroup>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             <AnimatePresence mode="popLayout">
-              {sortedCafes.map((cafe) => (
+              {visibleCafes.map((cafe) => (
                 <CafeCard
                   key={cafe.id}
                   cafe={cafe}
@@ -155,10 +138,12 @@ const Index = () => {
           </div>
         </LayoutGroup>
 
-        {cafes.length === 0 && (
+        {!loading && visibleCafes.length === 0 && (
           <div className="text-center py-20">
             <p className="text-muted-foreground font-heading text-lg">
-              No spots yet. Start curating your collection.
+              {cafes.length === 0
+                ? 'No spots yet. Tap + to log your first one.'
+                : 'No spots match your filters.'}
             </p>
           </div>
         )}
